@@ -4,16 +4,9 @@
 
 int main(void)
 {
-	int i;
-	int bits = 3;
-	int input[] = {1, 0, -1, 0, 1, 0, -1, 0};
-	complex *output;
-	output = fft_iterative(input, bits);
+	int input[] = {1, 0, -1, 0, 0, 0, 0, 0};
 
-	for(i = 0; i < 1<<bits; i++)
-	{
-		printf("%d. Re = %.2lf; Im = %.2lf\n", i, output[i].Re, output[i].Im);
-	}
-	free(output);
+	fft_to_frequency_domain(input, 8, 10, "fft2.csv");
+
 	return 0;
 }
