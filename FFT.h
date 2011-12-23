@@ -8,12 +8,14 @@ typedef struct _complex
 
 int reverse(int num, int bits);
 
-int fft_bit_reverse_copy(const int *input, complex *output, int bits);
+int fft_bit_reverse_copy(const double *input, complex *output, int bits);
 
-int fft_iterative(const int *input, complex *output, int bits);
+int fft_iterative(const double *input, complex *output, int bits);
 
-int fft_to_frequency_domain(const int *input, int length, int f_sampling, const char *filename);
+int fft_to_frequency_domain(const double *input, int length, int f_sampling, const char *filename);
 
-int fft_get_input(const char *filename);
+int fft_get_main_frequency(double *main_freq, const double *input, int length, int f_sampling);
+
+void sine_generator(double *input, double amp, double sine_freq, double noise_amp, int length, int f_sampling);
 
 #endif //FFT_H

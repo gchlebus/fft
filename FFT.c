@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+#include <time.h>
 #include "FFT.h"
 
 int reverse(int num, int bits)
@@ -42,7 +43,7 @@ int reverse(int num, int bits)
 	return output;
 }
 
-int fft_bit_reverse_copy(const int *input, complex *output, int bits)
+int fft_bit_reverse_copy(const double *input, complex *output, int bits)
 {
 	int i, rev;
 
@@ -72,9 +73,10 @@ complex multiply(double num, complex B)
 	return ret;
 }
 
-int fft_iterative(const int *input, complex *output, int bits)
+int fft_iterative(const double *input, complex *output, int bits)
 {
 	int s, k, j, m;
+	int i;
 	double unity_root, w;
 	complex t, u;
 
@@ -87,12 +89,12 @@ int fft_iterative(const int *input, complex *output, int bits)
 
 	for(s = 1; s <= bits; s++)
 	{
-		m = 1<<s;
-		unity_root = -(2 * M_PI) / (1<<bits);
+		m = 1<<s; //number of elements for which DFT is computed
+		unity_root = -(2 * M_PI) / m; //exponent of e - expotential form of complex number
 
 		for(k = 0; k < 1<<bits; k += m)
 		{
-			w = 2 * M_PI; //¿eby w multiply z tego wysz³a jedynka
+			w = 2 * M_PI; //e^(w*i) = 1 (i - imaginary unit)
 			for(j = 0; j <= m/2-1; )
 			{
 				t = multiply(w, output[k + j + m/2]);
@@ -103,14 +105,15 @@ int fft_iterative(const int *input, complex *output, int bits)
 				output[k + j + m/2].Re = u.Re - t.Re;
 				output[k + j + m/2].Im = u.Im - t.Im;
 				
-				w = unity_root * (++j); //kolejne potêgi unity_root
+				w = unity_root * (++j); 
 			}
 		}
 	}
+
 	return 0;
 }
 
-int fft_to_frequency_domain(const int *input, int length, int f_sampling, const char *filename)
+int fft_to_frequency_domain(const double *input, int length, int f_sampling, const char *filename)
 {
 	int bits, i;
 	double freq;
@@ -125,9 +128,7 @@ int fft_to_frequency_domain(const int *input, int length, int f_sampling, const 
 		return -1; //memory allocation failed
 	}
 
-	printf("%lf\n", log10((float)length)/log10((float)2));
 	bits = (int) (log10((float)length) / log10((float)2)); //log2(length)
-
 	if(fft_iterative(input, output, bits) ==  -1)
 	{
 		return -1; //fft_iterative failed
@@ -139,8 +140,8 @@ int fft_to_frequency_domain(const int *input, int length, int f_sampling, const 
 		fprintf(pFile, "Frequency [Hz]; |FFT|\n"); //header
 		for(i = 0; i < length; ++i)
 		{
-			freq = (double)i * (f_sampling / length);
-			output[i].Re = (sqrt(pow(output[i].Re,2) + pow(output[i].Im,2)))/length; //obliczanie modu³u i dzielenie przez length
+			freq = i * ((double)f_sampling / length);
+			output[i].Re = (sqrt(pow(output[i].Re,2) + pow(output[i].Im,2)))/length; //absolute value calculated & normalization by division by length
 			
 			fprintf(pFile, "%.4lf;%.4lf\n", freq, output[i].Re);
 		}
@@ -156,10 +157,55 @@ int fft_to_frequency_domain(const int *input, int length, int f_sampling, const 
 	return 0;
 }
 
-int fft_get_input(const char *filename)
+int fft_get_main_frequency(double *main_freq, const double *input, int length, int f_sampling)
 {
-	FILE *pFile;
+	int bits, i;
+	double freq;
+	double tmp, current_max = 0;
+	complex *output = NULL;
 
-	pFile = fopen(filename, "r");
+	assert(main_freq != NULL && input != NULL);
 
+	output = (complex *)calloc(length, sizeof(complex));
+	if(output == NULL)
+	{
+		return -1; //memory allocation failed
+	}
+
+	bits = (int) (log10((float)length) / log10((float)2)); //log2(length)
+	if(fft_iterative(input, output, bits) ==  -1)
+	{
+		return -1; //fft_iterative failed
+	}
+
+	for(i = 0; i < length/2 + 1; ++i)
+	{
+		freq = i * ((double)f_sampling / length);
+		tmp = sqrt(pow(output[i].Re,2) + pow(output[i].Im,2));
+
+		if(tmp > current_max)
+		{
+			current_max = tmp;
+			*main_freq = freq;
+		}
+	}
+
+	free(output);
+	return 0;
+}
+
+void sine_generator(double *input, double amp, double sine_freq, double noise_amp, int length, int f_sampling)
+{
+	int i;
+	double t;
+
+	assert(input != NULL);
+	
+	srand(time(NULL));
+
+	for(i = 0; i < length; ++i)
+	{
+		t = i * ((double)1/f_sampling);
+		input[i] = amp * sin(2*M_PI*sine_freq*t) + noise_amp * ((double)rand() / RAND_MAX);
+	}
 }
