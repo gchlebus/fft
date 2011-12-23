@@ -62,10 +62,9 @@ int fft_bit_reverse_copy(const double *input, complex *output, int bits)
 	return 0;
 }
 
-complex multiply(double num, complex B)
+complex complex_multiply(complex A, complex B)
 {
 	complex ret;
-	complex A = {cos(num), sin(num)};
 
 	ret.Re = A.Re * B.Re - A.Im * B.Im;
 	ret.Im = A.Re * B.Im + A.Im * B.Re;
@@ -79,6 +78,7 @@ int fft_iterative(const double *input, complex *output, int bits)
 	int i;
 	double unity_root, w;
 	complex t, u;
+	complex num;
 
 	assert(input != NULL && output != NULL && bits > 0);
 
@@ -94,10 +94,11 @@ int fft_iterative(const double *input, complex *output, int bits)
 
 		for(k = 0; k < 1<<bits; k += m)
 		{
-			w = 2 * M_PI; //e^(w*i) = 1 (i - imaginary unit)
+			num.Re = 1;
+			num.Im = 0;
 			for(j = 0; j <= m/2-1; )
 			{
-				t = multiply(w, output[k + j + m/2]);
+				t = complex_multiply(num, output[k + j + m/2]);
 				u = output[k+j];
 				
 				output[k+j].Re = u.Re + t.Re;
@@ -106,6 +107,8 @@ int fft_iterative(const double *input, complex *output, int bits)
 				output[k + j + m/2].Im = u.Im - t.Im;
 				
 				w = unity_root * (++j); 
+				num.Re = cos(w);
+				num.Im = sin(w);
 			}
 		}
 	}
