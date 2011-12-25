@@ -6,19 +6,6 @@
 #include <math.h>
 #include <time.h>
 
-unsigned int next_pow_2(unsigned int num)
-{
-	num--;
-	num |= num >> 1;   // Divide by 2^k for consecutive doublings of k up to 32,
-	num |= num >> 2;   // and then or the results.
-	num |= num >> 4;
-	num |= num >> 8;
-	num |= num >> 16;
-	num++;     
-
-	return num;
-}
-
 void sine_generator(double *input, unsigned int length, double f_sampling, sig_param param)
 {
 	unsigned int i;
@@ -68,11 +55,6 @@ void rectangle_generator(double *input, unsigned int length, double f_sampling, 
 	}
 }
 
-void triangle_generator(double *input, unsigned int length, double f_sampling, sig_param param)
-{
-
-}
-
 void white_noise_generator(double *input, unsigned int length, double f_sampling, sig_param param)
 {
 	unsigned int i;
@@ -90,24 +72,18 @@ void white_noise_generator(double *input, unsigned int length, double f_sampling
 int signal_generator(double **signal, unsigned int length, double f_sampling, unsigned int n, const generator *generators)
 {
 	unsigned int i;
-	double t;
 
 	assert(generators != NULL);
 
-	*signal = (double *)calloc(next_pow_2(length), sizeof(double));
+	*signal = (double *)calloc(length, sizeof(double));
 	if(*signal == NULL)
 	{
-		return -1; //allocation failed
+		return 1; //allocation failed
 	}
 
 	for(i = 0; i < n; ++i)
 	{
 		(generators + i)->func(*signal, length, f_sampling, (generators + i)->param);
-	}
-
-	if(length != next_pow_2(length))
-	{
-		printf("Na koñcu sygna³u zosta³y dodane zera!\n\n");
 	}
 
 	return 0;

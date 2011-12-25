@@ -6,7 +6,7 @@
 int main(void)
 {
 	setlocale(LC_ALL, "polish");
-	
+
 	menu();
 
 	return 0;

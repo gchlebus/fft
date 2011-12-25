@@ -8,9 +8,9 @@
 #include "FFT.h"
 
 double *signal;
+complex *fft;
 unsigned int n_samples;
 double f_sampling;
-complex *fft;
 
 static void print_string(const char *str)
 {
@@ -28,11 +28,10 @@ static long int uint_get_user_input(const char *msg,  const char * warn, unsigne
 	while(1)
 	{
 		print_string(msg);
-		gets(str);
+		fgets(str, 20, stdin);
 		input = strtol(str, &c, 10);
-		if(*c == NULL && input >= lbound && input <= rbound)
+		if(*c == '\n' && input >= lbound && input <= rbound)
 		{
-			printf("\n");
 			return input;
 		}
 		else if(*c != NULL)
@@ -54,11 +53,10 @@ static double dbl_get_user_input(const char* msg, const char *warn, double lboun
 	while(1)
 	{
 		print_string(msg);
-		gets(str);
+		fgets(str, 20, stdin);
 		input = strtod(str, &c);
-		if(*c == NULL && input >= lbound && input <= rbound)
+		if(*c == '\n' && input >= lbound && input <= rbound)
 		{
-			printf("\n");
 			return input;
 		}
 		else if(*c != NULL)
@@ -83,7 +81,7 @@ void menu(void)
 			generate_signal();
 			break;
 		case 2:
-			//load_signal_from_file();
+			load_signal_from_file();
 			break;
 		case 3:
 			save_signal_to_file();
@@ -106,7 +104,7 @@ void menu(void)
 
 static void main_menu(void)
 {
-	printf("Menu\n");
+	printf("********MENU*******\n");
 	printf("1. Wygeneruj sygna³\n");
 	printf("2. Wczytaj sygna³ z pliku\n");
 	printf("3. Zapisz sygna³ do pliku\n");
@@ -116,30 +114,41 @@ static void main_menu(void)
 	printf("7. Zakoñcz\n");
 }
 
-void generate_signal_menu(void)
+void generate_signal_menu(unsigned int num)
 {
-	printf("Wybierz rodzaj sygna³u:\n");
+	printf("\nWybierz rodzaj sygna³u:\n");
 	printf("1. Sinus\n");
 	printf("2. Cosinus\n");
 	printf("3. Prostok¹t (symetryczny)\n");
-	printf("4. Trójk¹t (symetryczny)\n");
-	printf("5. Bia³y szum\n");
-	printf("6. Gotowe\n");
+	printf("4. Bia³y szum\n");
+	printf("5. Generuj\n");
+	if(num == 0 || num >= 5)
+	{
+		printf("Obecnie wybrano %d funkcji\n", num);
+	}
+	else if(num == 1)
+	{
+		printf("Obecnie wybrano %d funkcjê\n", num);
+	}
+	else
+	{
+		printf("Obecnie wybrano %d funkcje\n", num);
+	}
 }
 
-static int generate_signal(void)
+static void generate_signal(void)
 {
 	unsigned int n_funcs = 0;
+	unsigned int suggested_value;
+	double max_freq = 0;
+	char n_samples_str[100], f_sampling_str[100];
 	generator_func *func;
 	generator *tmp, *generators = NULL;
 
-	n_samples = uint_get_user_input("Podaj iloœæ próbek: ", "B³êdna iloœæ próbek!\n", 1, UINT_MAX);
-	f_sampling = dbl_get_user_input("Podaj czêstotliwoœæ próbkowania sygna³u[Hz]: ", "B³êdna czêstotliwoœæ!\n", 1.0/INT_MAX, INT_MAX);
-
 	while(1)
 	{
-		generate_signal_menu();
-		switch(uint_get_user_input("Wybierz opcjê: ", "Nie ma takiej opcji\n", 1, 6))
+		generate_signal_menu(n_funcs);
+		switch(uint_get_user_input("Wybierz opcjê: ", "Nie ma takiej opcji\n", 1, 5))
 		{
 		case 1:
 			func = sine_generator;
@@ -151,38 +160,63 @@ static int generate_signal(void)
 			func = rectangle_generator;
 			break;
 		case 4:
-			func = triangle_generator;
-			break;
-		case 5:
 			func = white_noise_generator;
 			break;
-		case 6:
-			signal_generator(&signal, n_samples, f_sampling, n_funcs, generators);
-			return 0;
+		case 5:
+			if(generators != NULL)
+			{
+				suggested_value = (int)ceil(2 * max_freq);
+				
+				sprintf(n_samples_str, "\nPodaj iloœæ próbek (sugerowana minimalna wartoœæ %d): ", suggested_value);
+				n_samples = uint_get_user_input(n_samples_str, "B³êdna iloœæ próbek!\n", 1, UINT_MAX);
+				
+				sprintf(f_sampling_str, "Podaj czêstotliwoœæ próbkowania sygna³u[Hz] (sugerowana minimalna wartoœæ %d): ", suggested_value);
+				f_sampling = dbl_get_user_input(f_sampling_str, "B³êdna czêstotliwoœæ!\n", 1.0/INT_MAX, INT_MAX);
+
+				if(signal_generator(&signal, n_samples, f_sampling, n_funcs, generators))
+				{
+					printf("B£¥D przy alokacji pamiêci na próbki sygna³u. Sygna³ nie zosta³ wygenerowany!\n\n");
+				}
+				else
+				{
+					printf("\nWYGENEROWANO SYGNA£!\n\n");
+				}
+
+				free(generators);
+				generators = NULL;
+			}
+			else
+			{
+				printf("SYGNA£ NIE ZOSTA£ WYGENEROWANY. Nie zosta³y wybrane ¿adne funkcje!\n\n");
+			}
+			return;
 		}
 
 		tmp = (generator *)realloc(generators, (n_funcs+1) * sizeof(generator));
 		if(tmp == NULL)
 		{
-			if(generators != NULL)
-			{
-				free(generators);
-			}
-			return -1;
+			printf("B£¥D przy alokacji pamiêci na now¹ funkcjê. Poprzednio wybrane funkcje nie zosta³y skaskowane!\n");
+			continue;
+		}
+
+		if(fft != NULL) //delete fft calculated for previous signal
+		{
+			printf("\nFFT poprzedniego sygna³u zosta³o wykasowane\n");
+			free(fft);
+			fft = NULL;
 		}
 
 		generators = tmp;
 		generators[n_funcs].func = func;
-		generators[n_funcs].param.amp = dbl_get_user_input("Podaj amplitudê: ", "B³êdna wartoœæ!\n", 0, INT_MAX);
+		generators[n_funcs].param.amp = dbl_get_user_input("\nPodaj amplitudê: ", "B³êdna wartoœæ!\n", 0, INT_MAX);
 		generators[n_funcs].param.freq = dbl_get_user_input("Podaj czêstotliwoœæ[Hz]: ", "B³êdna wartoœæ!\n", 0, INT_MAX);
-		n_funcs++;
-
-		if(fft != NULL)
+		
+		if(generators[n_funcs].param.freq > max_freq) //store maximum frequency (needed to suggest f_sampling and n_samples value)
 		{
-			printf("FFT poprzedniego sygna³u zosta³o wykasowane\n\n");
-			free(fft);
-			fft = NULL;
+			max_freq = generators[n_funcs].param.freq;
 		}
+
+		n_funcs++;
 	}
 }
 
@@ -190,7 +224,6 @@ static void save_signal_to_file(void)
 {
 	unsigned int i;
 	char filename[100];
-	double t;
 	FILE *pFile;
 
 	if(signal != NULL)
@@ -200,35 +233,25 @@ static void save_signal_to_file(void)
 		pFile = fopen(filename, "w");
 		if(pFile != NULL)
 		{
-			fprintf(pFile, "Time [s]; y(t)\n"); //header
-			for(i = 0; i < next_pow_2(n_samples); ++i)
+			fprintf(pFile, "%d;%lf\n", n_samples, f_sampling);
+			for(i = 0; i < n_samples; ++i)
 			{
-				t = i * (1 / f_sampling);
-				fprintf(pFile, "%.4lf;%.4lf\n", t, signal[i]);
+				fprintf(pFile, "%lf\n", signal[i]);
 			}
 			fclose(pFile);
+
+			printf("\nSYGNA£ ZOSTA£ POPRAWNIE ZAPISANY DO PLIKU: ");
+			print_string(filename);
+			printf("\n\n");
 		}
 		else
 		{
-			printf("B³¹d podczas zapisu do pliku!\n\n");
+			printf("\nB£¥D podczas zapisu do pliku!\n\n");
 		}
 	}
 	else
 	{
-		printf("W pamiêci nie ma ¿adnego sygna³u!\n\n");
-	}
-}
-
-static void end(void)
-{
-	if(signal != NULL)
-	{
-		free(signal);
-	}
-
-	if(fft != NULL)
-	{
-		free(fft);
+		printf("\nW pamiêci nie ma sygna³u!\n\n");
 	}
 }
 
@@ -236,11 +259,18 @@ static void calculate_fft(void)
 {
 	if(signal != NULL)
 	{
-		fft_to_frequency_domain(signal, &fft, next_pow_2(n_samples), f_sampling);
+		if(fft_to_frequency_domain(&signal, &fft, n_samples, f_sampling))
+		{
+			printf("\nB£¥D podczas obliczania FFT!\n\n");
+		}
+		else
+		{
+			printf("\nOBLICZONO FFT SYGNA£U!\n\n");
+		}
 	}
 	else
 	{
-		printf("W pamiêci nie ma ¿adnego sygna³u\n\n");
+		printf("\nW pamiêci nie ma sygna³u!\n\n");
 	}
 }
 
@@ -266,15 +296,18 @@ static void save_fft_to_file(void)
 				fprintf(pFile, "%.4lf;%.4lf\n", freq, (sqrt(pow(fft[i].Re,2) + pow(fft[i].Im,2)))/length);
 			}
 			fclose(pFile);
+			printf("\nFFT ZOSTA£O POPRAWNIE ZAPISANE DO PLIKU: ");
+			print_string(filename);
+			printf("\n\n");
 		}
 		else
 		{
-			printf("B³¹d podczas zapisu do pliku!\n\n");
+			printf("\nB£¥D podczas zapisu do pliku!\n\n");
 		}
 	}
 	else
 	{
-		printf("W pamiêci nie ma ¿adnego fft\n\n");
+		printf("\nFFT nie zosta³o obliczone!\n\n");
 	}
 }
 
@@ -285,10 +318,97 @@ static void get_main_frequency(void)
 	if(fft != NULL)
 	{
 		fft_get_main_frequency(&main_freq, fft, next_pow_2(n_samples), f_sampling);
-		printf("G³ówna sk³adowa to: %.4lf\n", main_freq);
+		printf("\nG£ÓWNA SK£ADOWA TO: %.4lf\n\n", main_freq);
 	}
 	else
 	{
-		printf("W pamiêci nie ma ¿adnego fft\n\n");
+		printf("\nFFT nie zosta³o obliczone!\n\n");
+	}
+}
+
+static void load_signal_from_file(void)
+{
+	double *tmp, *tmp_signal = NULL;
+	double tmp_f_sampling;
+	unsigned int tmp_n_samples;
+	double value;
+	char filename[100];
+	unsigned int max_size, size;
+	FILE *pFile;
+
+	printf("Podaj nazwê pliku do wczytania: ");
+	gets(filename);
+
+	pFile = fopen(filename, "r");
+	if(pFile != NULL)
+	{
+		switch(fscanf(pFile, "%d;%lf\n", &tmp_n_samples, &tmp_f_sampling))
+		{
+		case 2:
+			break;
+		default:
+			fclose(pFile);
+			printf("\nB£¥D podczas odczytu pliku!\n\n");
+			return;
+		}
+
+		max_size = size = 0;
+		while(1)
+		{
+			if(fscanf(pFile, "%lf\n", &value) == 1)
+			{
+				if(size >= max_size)
+				{
+					max_size = 2 * size + 2;
+					tmp = realloc(tmp_signal, max_size * sizeof(double));
+					if(tmp == NULL)
+					{
+						printf("\nB£¥D podczas alokacji pamiêci! Sygna³ nie zosta³ wczytany.\n\n");
+						free(tmp_signal);
+						return;
+					}
+
+					tmp_signal = tmp;
+				}
+
+				*(tmp_signal + size++) = value;
+			}
+			else
+			{
+				fclose(pFile);
+				break;
+			}
+		}
+	}
+	else
+	{
+		printf("\nB£¥D podczas otwierania pliku!\n\n");
+		return;
+	}
+
+	if(size != tmp_n_samples)
+	{
+		printf("\nB£¥D sygna³ nie zosta³ wczytany poprawnie. Brak wszystkich danych.\n\n");
+		return;
+	}
+
+	printf("\nWCZYTANO POPRAWNIE SYGNA£ Z PLIKU: ");
+	print_string(filename);
+	printf("\n\n");
+	n_samples = tmp_n_samples;
+	f_sampling = tmp_f_sampling;
+	signal = tmp_signal;
+}
+
+static void end(void)
+{
+	if(signal != NULL)
+	{
+		free(signal);
+	}
+
+	if(fft != NULL)
+	{
+		free(fft);
 	}
 }

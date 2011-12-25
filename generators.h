@@ -15,15 +15,11 @@ typedef struct generator_
 	sig_param param;
 } generator;
 
-unsigned int next_pow_2(unsigned int num);
-
 void sine_generator(double *input, unsigned int length, double f_sampling, sig_param param);
 
 void cosine_generator(double *input, unsigned int length, double f_sampling, sig_param param);
 
 void rectangle_generator(double *input, unsigned int length, double f_sampling, sig_param param);
-
-void triangle_generator(double *input, unsigned int length, double f_sampling, sig_param param);
 
 void white_noise_generator(double *input, unsigned int length, double f_sampling, sig_param param);
 

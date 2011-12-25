@@ -13,7 +13,7 @@ static void main_menu(void);
 
 static void load_signal_from_file(void);
 
-static int generate_signal(void);
+static void generate_signal(void);
 
 static void save_signal_to_file(void);
 

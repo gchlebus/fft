@@ -7,6 +7,19 @@
 #include <time.h>
 #include "FFT.h"
 
+unsigned int next_pow_2(unsigned int num)
+{
+	num--;
+	num |= num >> 1;   // Divide by 2^k for consecutive doublings of k up to 32,
+	num |= num >> 2;   // and then or the results.
+	num |= num >> 4;
+	num |= num >> 8;
+	num |= num >> 16;
+	num++;     
+
+	return num;
+}
+
 int reverse(unsigned int num, unsigned int bits)
 {
 	int *stack = NULL, *tmp;
@@ -62,7 +75,7 @@ int fft_bit_reverse_copy(const double *input, complex *output, unsigned int bits
 	return 0;
 }
 
-complex complex_multiply(complex A, complex B)
+complex complex_multiply(const complex A, const complex B)
 {
 	complex ret;
 
@@ -115,20 +128,39 @@ int fft_iterative(const double *input, complex *output, unsigned int bits)
 	return 0;
 }
 
-int fft_to_frequency_domain(const double *input, complex **fft, unsigned int length, double f_sampling)
+int fft_to_frequency_domain(double **input, complex **fft, unsigned int length, double f_sampling)
 {
-	unsigned int bits;
+	unsigned int bits, next_pow_2_num, i;
+	double *tmp;
 
-	assert(input != NULL && length != 0 && f_sampling > 0);
+	assert(*input != NULL && f_sampling > 0);
 
-	*fft = (complex *)calloc(length, sizeof(complex));
+	next_pow_2_num = next_pow_2(length);
+	if(next_pow_2_num != length)
+	{
+		tmp = (double *)realloc(*input, next_pow_2_num * sizeof(double));
+		if(tmp == NULL)
+		{
+			return -1; //memory reallocation failed
+		}
+		else
+		{
+			*input = tmp;
+			for(i = length; i < next_pow_2_num; ++i)
+			{
+				(*input)[i] = 0;
+			}
+		}
+	}
+
+	*fft = (complex *)calloc(next_pow_2_num, sizeof(complex));
 	if(*fft == NULL)
 	{
 		return -1; //memory allocation failed
 	}
 
-	bits = (int) (log10((float)length) / log10((float)2)); //log2(length)
-	if(fft_iterative(input, *fft, bits) ==  -1)
+	bits = (int) (log10((float)next_pow_2_num) / log10((float)2)); //log2(length)
+	if(fft_iterative(*input, *fft, bits))
 	{
 		return -1; //fft_iterative failed
 	}
@@ -136,13 +168,13 @@ int fft_to_frequency_domain(const double *input, complex **fft, unsigned int len
 	return 0;
 }
 
-int fft_get_main_frequency(double *main_freq, const complex *fft, unsigned int length, double f_sampling)
+void fft_get_main_frequency(double *main_freq, const complex *fft, unsigned int length, double f_sampling)
 {
 	unsigned int i;
 	double freq;
 	double tmp, current_max = 0;
 
-	assert(main_freq != NULL && fft != NULL);
+	assert(main_freq != NULL && fft != NULL && f_sampling > 0);
 
 	for(i = 0; i < length/2 + 1; ++i)
 	{
@@ -155,6 +187,4 @@ int fft_get_main_frequency(double *main_freq, const complex *fft, unsigned int l
 			*main_freq = freq;
 		}
 	}
-
-	return 0;
 }
