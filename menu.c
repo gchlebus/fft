@@ -20,7 +20,7 @@ static void print_string(const char *str)
 	}
 }
 
-static long int uint_get_user_input(const char *msg,  const char * warn, unsigned int lbound, unsigned int rbound)
+static long int uint_get_user_input(const char *msg,  const char * warn, const unsigned int lbound, const unsigned int rbound)
 {
 	char *c, str[20];
 	unsigned int input;
@@ -45,7 +45,7 @@ static long int uint_get_user_input(const char *msg,  const char * warn, unsigne
 	}
 }
 
-static double dbl_get_user_input(const char* msg, const char *warn, double lbound, double rbound)
+static double dbl_get_user_input(const char* msg, const char *warn, const double lbound, const double rbound)
 {
 	char *c, str[20];
 	double input;
@@ -108,13 +108,13 @@ static void main_menu(void)
 	printf("1. Wygeneruj sygna³\n");
 	printf("2. Wczytaj sygna³ z pliku\n");
 	printf("3. Zapisz sygna³ do pliku\n");
-	printf("4. Oblicz FFT\n");
-	printf("5. Zapisz FFT sygna³u do pliku\n");
+	printf("4. Oblicz DFT\n");
+	printf("5. Zapisz DFT sygna³u do pliku\n");
 	printf("6. Oblicz g³ówn¹ sk³adow¹ czêstotliwoœciow¹\n");
 	printf("7. Zakoñcz\n");
 }
 
-void generate_signal_menu(unsigned int num)
+static void generate_signal_menu(const unsigned int num)
 {
 	printf("\nWybierz rodzaj sygna³u:\n");
 	printf("1. Sinus\n");
@@ -261,11 +261,11 @@ static void calculate_fft(void)
 	{
 		if(fft_to_frequency_domain(&signal, &fft, n_samples, f_sampling))
 		{
-			printf("\nB£¥D podczas obliczania FFT!\n\n");
+			printf("\nB£¥D podczas obliczania DFT!\n\n");
 		}
 		else
 		{
-			printf("\nOBLICZONO FFT SYGNA£U!\n\n");
+			printf("\nOBLICZONO DFT SYGNA£U!\n\n");
 		}
 	}
 	else
@@ -296,7 +296,7 @@ static void save_fft_to_file(void)
 				fprintf(pFile, "%.4lf;%.4lf\n", freq, (sqrt(pow(fft[i].Re,2) + pow(fft[i].Im,2)))/length);
 			}
 			fclose(pFile);
-			printf("\nFFT ZOSTA£O POPRAWNIE ZAPISANE DO PLIKU: ");
+			printf("\nDFT ZOSTA£O POPRAWNIE ZAPISANE DO PLIKU: ");
 			print_string(filename);
 			printf("\n\n");
 		}
@@ -307,7 +307,7 @@ static void save_fft_to_file(void)
 	}
 	else
 	{
-		printf("\nFFT nie zosta³o obliczone!\n\n");
+		printf("\nDFT nie zosta³o obliczone!\n\n");
 	}
 }
 
@@ -317,12 +317,12 @@ static void get_main_frequency(void)
 
 	if(fft != NULL)
 	{
-		fft_get_main_frequency(&main_freq, fft, next_pow_2(n_samples), f_sampling);
+		main_freq = fft_get_main_frequency(fft, next_pow_2(n_samples), f_sampling);
 		printf("\nG£ÓWNA SK£ADOWA TO: %.4lf\n\n", main_freq);
 	}
 	else
 	{
-		printf("\nFFT nie zosta³o obliczone!\n\n");
+		printf("\nDFT nie zosta³o obliczone!\n\n");
 	}
 }
 

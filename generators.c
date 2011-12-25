@@ -6,7 +6,7 @@
 #include <math.h>
 #include <time.h>
 
-void sine_generator(double *input, unsigned int length, double f_sampling, sig_param param)
+void sine_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param)
 {
 	unsigned int i;
 	double t;
@@ -20,7 +20,7 @@ void sine_generator(double *input, unsigned int length, double f_sampling, sig_p
 	}
 }
 
-void cosine_generator(double *input, unsigned int length, double f_sampling, sig_param param)
+void cosine_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param)
 {
 	unsigned int i;
 	double t;
@@ -34,7 +34,7 @@ void cosine_generator(double *input, unsigned int length, double f_sampling, sig
 	}
 }
 
-void rectangle_generator(double *input, unsigned int length, double f_sampling, sig_param param)
+void rectangle_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param)
 {
 	unsigned int i, j;
 	double t;
@@ -55,7 +55,7 @@ void rectangle_generator(double *input, unsigned int length, double f_sampling, 
 	}
 }
 
-void white_noise_generator(double *input, unsigned int length, double f_sampling, sig_param param)
+void white_noise_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param)
 {
 	unsigned int i;
 
@@ -69,7 +69,7 @@ void white_noise_generator(double *input, unsigned int length, double f_sampling
 	}
 }
 
-int signal_generator(double **signal, unsigned int length, double f_sampling, unsigned int n, const generator *generators)
+int signal_generator(double **signal, const unsigned int length, const double f_sampling, const unsigned int n, const generator *generators)
 {
 	unsigned int i;
 

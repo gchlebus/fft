@@ -56,7 +56,7 @@ int reverse(unsigned int num, unsigned int bits)
 	return output;
 }
 
-int fft_bit_reverse_copy(const double *input, complex *output, unsigned int bits)
+int fft_bit_reverse_copy(const double *input, complex *output, const unsigned int bits)
 {
 	unsigned int i, rev;
 
@@ -75,17 +75,16 @@ int fft_bit_reverse_copy(const double *input, complex *output, unsigned int bits
 	return 0;
 }
 
-complex complex_multiply(const complex A, const complex B)
+complex complex_multiply(complex A, complex B)
 {
-	complex ret;
 
-	ret.Re = A.Re * B.Re - A.Im * B.Im;
-	ret.Im = A.Re * B.Im + A.Im * B.Re;
+	A.Re = A.Re * B.Re - A.Im * B.Im;
+	A.Im = A.Re * B.Im + A.Im * B.Re;
 
-	return ret;
+	return A;
 }
 
-int fft_iterative(const double *input, complex *output, unsigned int bits)
+int fft_iterative(const double *input, complex *output, const unsigned int bits)
 {
 	unsigned int s, k, j, m;
 	double unity_root, w;
@@ -128,12 +127,12 @@ int fft_iterative(const double *input, complex *output, unsigned int bits)
 	return 0;
 }
 
-int fft_to_frequency_domain(double **input, complex **fft, unsigned int length, double f_sampling)
+int fft_to_frequency_domain(double **input, complex **fft, const unsigned int length)
 {
 	unsigned int bits, next_pow_2_num, i;
 	double *tmp;
 
-	assert(*input != NULL && f_sampling > 0);
+	assert(*input != NULL);
 
 	next_pow_2_num = next_pow_2(length);
 	if(next_pow_2_num != length)
@@ -168,13 +167,13 @@ int fft_to_frequency_domain(double **input, complex **fft, unsigned int length, 
 	return 0;
 }
 
-void fft_get_main_frequency(double *main_freq, const complex *fft, unsigned int length, double f_sampling)
+double fft_get_main_frequency(const complex *fft, const unsigned int length, const double f_sampling)
 {
 	unsigned int i;
-	double freq;
+	double freq, main_freq;
 	double tmp, current_max = 0;
 
-	assert(main_freq != NULL && fft != NULL && f_sampling > 0);
+	assert(fft != NULL && f_sampling > 0);
 
 	for(i = 0; i < length/2 + 1; ++i)
 	{
@@ -184,7 +183,9 @@ void fft_get_main_frequency(double *main_freq, const complex *fft, unsigned int 
 		if(tmp > current_max)
 		{
 			current_max = tmp;
-			*main_freq = freq;
+			main_freq = freq;
 		}
 	}
+
+	return main_freq;
 }

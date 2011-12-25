@@ -5,13 +5,15 @@ void menu(void);
 
 static void print_string(const char* str);
 
-static long int uint_get_user_input(const char *msg, const char *warn, unsigned int lbound, unsigned int rbound);
+static long int uint_get_user_input(const char *msg, const char *warn, const unsigned int lbound, const unsigned int rbound);
 
-static double dbl_get_user_input(const char* msg, const char *warn, double lbound, double rbound);
+static double dbl_get_user_input(const char* msg, const char *warn, const double lbound, const double rbound);
 
 static void main_menu(void);
 
 static void load_signal_from_file(void);
+
+static void generate_signal_menu(const unsigned int num);
 
 static void generate_signal(void);
 

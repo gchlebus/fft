@@ -7,7 +7,7 @@ typedef struct sig_param_
 	double freq;
 } sig_param;
 
-typedef void generator_func(double *input, unsigned int length, double f_sampling, sig_param param);
+typedef void generator_func(double *input, const unsigned int length, const double f_sampling, const sig_param param);
 
 typedef struct generator_
 {
@@ -15,14 +15,14 @@ typedef struct generator_
 	sig_param param;
 } generator;
 
-void sine_generator(double *input, unsigned int length, double f_sampling, sig_param param);
+void sine_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param);
 
-void cosine_generator(double *input, unsigned int length, double f_sampling, sig_param param);
+void cosine_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param);
 
-void rectangle_generator(double *input, unsigned int length, double f_sampling, sig_param param);
+void rectangle_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param);
 
-void white_noise_generator(double *input, unsigned int length, double f_sampling, sig_param param);
+void white_noise_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param);
 
-int signal_generator (double **signal, unsigned int length, double f_sampling, unsigned int n, const generator *generators);
+int signal_generator (double **signal, const unsigned int length, const double f_sampling, const unsigned int n, const generator *generators);
 
 #endif
