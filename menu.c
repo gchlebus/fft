@@ -142,7 +142,7 @@ static void generate_signal(void)
 	unsigned int suggested_value;
 	double max_freq = 0;
 	char n_samples_str[100], f_sampling_str[100];
-	generator_func *func;
+	waveform_func *func;
 	generator *tmp, *generators = NULL;
 
 	while(1)
@@ -209,7 +209,10 @@ static void generate_signal(void)
 		generators = tmp;
 		generators[n_funcs].func = func;
 		generators[n_funcs].param.amp = dbl_get_user_input("\nPodaj amplitudê: ", "B³êdna wartoœæ!\n", 0, INT_MAX);
-		generators[n_funcs].param.freq = dbl_get_user_input("Podaj czêstotliwoœæ[Hz]: ", "B³êdna wartoœæ!\n", 0, INT_MAX);
+		if(func != white_noise_generator)
+		{
+			generators[n_funcs].param.freq = dbl_get_user_input("Podaj czêstotliwoœæ[Hz]: ", "B³êdna wartoœæ!\n", 0, INT_MAX);
+		}
 		
 		if(generators[n_funcs].param.freq > max_freq) //store maximum frequency (needed to suggest f_sampling and n_samples value)
 		{

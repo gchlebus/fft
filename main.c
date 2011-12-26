@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <locale.h>
 #include "menu.h"
+#include "generators.h"
 
 int main(void)
 {
