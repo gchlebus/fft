@@ -7,6 +7,15 @@
 #include <time.h>
 #include "FFT.h"
 
+complex complex_multiply(complex A, complex B)
+{
+
+	A.Re = A.Re * B.Re - A.Im * B.Im;
+	A.Im = A.Re * B.Im + A.Im * B.Re;
+
+	return A;
+}
+
 unsigned int next_pow_2(unsigned int num)
 {
 	num--;
@@ -27,7 +36,7 @@ int reverse(unsigned int num, unsigned int bits)
 	unsigned int i;
 	unsigned int output = 0;
 
-	assert(num >= 0 && bits > 0);
+	assert(num >= 0 && bits >= 0);
 
 	while(num != 0 || height != bits)
 	{
@@ -60,38 +69,27 @@ int fft_bit_reverse_copy(const double *input, complex *output, const unsigned in
 {
 	unsigned int i, rev;
 
-	assert(input != NULL && output != NULL && bits > 0);
+	assert(input != NULL && output != NULL && bits >= 0);
 
-	for(i = 0; i < 1<<bits; i++)
+	for(i = 0; i < 1<<bits; ++i)
 	{
 		rev = reverse(i, bits);
 		if(rev == -1)
 		{
 			return -1; //reverse function failed
 		}
-
 		output[rev].Re = input[i];
 	}
 	return 0;
-}
-
-complex complex_multiply(complex A, complex B)
-{
-
-	A.Re = A.Re * B.Re - A.Im * B.Im;
-	A.Im = A.Re * B.Im + A.Im * B.Re;
-
-	return A;
 }
 
 int fft_iterative(const double *input, complex *output, const unsigned int bits)
 {
 	unsigned int s, k, j, m;
 	double unity_root, w;
-	complex t, u;
-	complex num;
+	complex t, u, num;
 
-	assert(input != NULL && output != NULL && bits > 0);
+	assert(input != NULL && output != NULL && bits >= 0);
 
 	if(fft_bit_reverse_copy(input, output, bits) == -1)
 	{
@@ -170,19 +168,19 @@ int fft_to_frequency_domain(double **input, complex **fft, const unsigned int le
 double fft_get_main_frequency(const complex *fft, const unsigned int length, const double f_sampling)
 {
 	unsigned int i;
-	double freq, main_freq;
-	double tmp, current_max = 0;
+	double freq, main_freq = 0;
+	double tmp_value, max_value = 0;
 
 	assert(fft != NULL && f_sampling > 0);
 
 	for(i = 0; i < length/2 + 1; ++i)
 	{
 		freq = i * ((double)f_sampling / length);
-		tmp = sqrt(pow(fft[i].Re,2) + pow(fft[i].Im,2));
+		tmp_value = sqrt(pow(fft[i].Re,2) + pow(fft[i].Im,2));
 
-		if(tmp > current_max)
+		if(tmp_value > max_value)
 		{
-			current_max = tmp;
+			max_value = tmp_value;
 			main_freq = freq;
 		}
 	}
