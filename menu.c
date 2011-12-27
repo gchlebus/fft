@@ -20,10 +20,10 @@ static void print_string(const char *str)
 	}
 }
 
-static long int uint_get_user_input(const char *msg,  const char *warn, const unsigned int lbound, const unsigned int rbound)
+static long int uint_get_user_input(const char *msg,  const char *warn, const long int lbound, const long int rbound)
 {
 	char *c, str[20];
-	unsigned int input;
+	long int input;
 	
 	while(1)
 	{
@@ -168,7 +168,7 @@ static void generate_signal(void)
 				suggested_value = (int)ceil(2 * max_freq);
 				
 				sprintf(n_samples_str, "\nPodaj iloœæ próbek (sugerowana minimalna wartoœæ %d): ", suggested_value);
-				n_samples = uint_get_user_input(n_samples_str, "B³êdna iloœæ próbek!\n", 1, UINT_MAX);
+				n_samples = (unsigned int)uint_get_user_input(n_samples_str, "B³êdna iloœæ próbek!\n", 1, UINT_MAX);
 				
 				sprintf(f_sampling_str, "Podaj czêstotliwoœæ próbkowania sygna³u[Hz] (sugerowana minimalna wartoœæ %d): ", suggested_value);
 				f_sampling = dbl_get_user_input(f_sampling_str, "B³êdna czêstotliwoœæ!\n", 1.0/INT_MAX, INT_MAX);

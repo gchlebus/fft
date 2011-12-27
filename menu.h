@@ -5,7 +5,7 @@ void menu(void);
 
 static void print_string(const char* str);
 
-static long int uint_get_user_input(const char *msg, const char *warn, const unsigned int lbound, const unsigned int rbound);
+static long int uint_get_user_input(const char *msg, const char *warn, const long int lbound, const long int rbound);
 
 static double dbl_get_user_input(const char *msg, const char *warn, const double lbound, const double rbound);
 
