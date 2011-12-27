@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
-#include <time.h>
 #include "FFT.h"
 
 complex complex_multiply(complex A, complex B)
