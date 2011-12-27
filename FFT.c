@@ -31,34 +31,28 @@ unsigned int next_pow_2(unsigned int num)
 
 int reverse(unsigned int num, unsigned int bits)
 {
-	int *stack = NULL, *tmp;
-	int height = 0, max_heigth = 0;
-	unsigned int i;
-	unsigned int output = 0;
+	int *stack;
+	unsigned int i, j, output;
 
 	assert(num >= 0 && bits >= 0);
 
-	while(num != 0 || height != bits)
+	stack = (int *)malloc(bits * sizeof(int));
+	if(stack == NULL)
 	{
-		if(height >= max_heigth)
-		{
-			max_heigth = 2 * height + 2;
-			tmp = (int *)realloc(stack, max_heigth * sizeof(int));
-			if(tmp == NULL)
-			{
-				free(stack);
-				return -1;
-			}
-			stack = tmp;
-		}
+		return -1;
+	}
 
-		stack[height++] = num % 2;
+	i = 0;
+	while(i != bits)
+	{
+		stack[i++] = num % 2;
 		num /= 2;
 	}
 
-	for(i = 0; height != 0; i++)
+	output = 0;
+	for(j = 0; i != 0; ++j)
 	{
-		output += stack[--height] * 1<<i;
+		output += stack[--i] * 1<<j;
 	}
 
 	free(stack);

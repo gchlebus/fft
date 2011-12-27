@@ -138,13 +138,13 @@ static void generate_signal_menu(const unsigned int num)
 
 static void generate_signal(void)
 {
-	unsigned int n_funcs = 0;
-	unsigned int suggested_value;
+	unsigned int n_funcs, suggested_value;
 	double max_freq = 0;
 	char n_samples_str[100], f_sampling_str[100];
 	waveform_func *func;
 	generator *tmp, *generators = NULL;
 
+	n_funcs = 0;
 	while(1)
 	{
 		generate_signal_menu(n_funcs);
@@ -179,7 +179,16 @@ static void generate_signal(void)
 				}
 				else
 				{
-					printf("\nWYGENEROWANO SYGNA£!\n\n");
+					if(!fft)
+					{
+						printf("\nWYGENEROWANO SYGNA£!\n\n");
+					}
+					else
+					{
+						printf("\nWYGENEROWANO SYGNA£! DFT poprzedniego sygna³u zosta³o wykasowane\n\n");
+						free(fft);
+						fft = NULL;
+					}
 				}
 
 				free(generators);
@@ -192,18 +201,12 @@ static void generate_signal(void)
 			return;
 		}
 
+		//allocate new generator with waveform_func stored in func
 		tmp = (generator *)realloc(generators, (n_funcs+1) * sizeof(generator));
 		if(tmp == NULL)
 		{
 			printf("B£¥D przy alokacji pamiêci na now¹ funkcjê. Poprzednio wybrane funkcje nie zosta³y skaskowane!\n");
 			continue;
-		}
-
-		if(fft != NULL) //delete fft calculated for previous signal
-		{
-			printf("\nFFT poprzedniego sygna³u zosta³o wykasowane\n");
-			free(fft);
-			fft = NULL;
 		}
 
 		generators = tmp;
@@ -214,7 +217,8 @@ static void generate_signal(void)
 			generators[n_funcs].param.freq = dbl_get_user_input("Podaj czêstotliwoœæ[Hz]: ", "B³êdna wartoœæ!\n", 0, INT_MAX);
 		}
 		
-		if(generators[n_funcs].param.freq > max_freq) //store maximum frequency (needed to suggest f_sampling and n_samples value)
+		//store maximum frequency (needed to suggest f_sampling and n_samples value)
+		if(generators[n_funcs].param.freq > max_freq) 
 		{
 			max_freq = generators[n_funcs].param.freq;
 		}
@@ -293,10 +297,10 @@ static void save_fft_to_file(void)
 		{
 			length = next_pow_2(n_samples);
 			fprintf(pFile, "Frequency [Hz]; |FFT|\n"); //header
-			for(i = 0; i < next_pow_2(n_samples); ++i)
+			for(i = 0; i < length; ++i)
 			{
 				freq = i * ((double)f_sampling / length);
-				fprintf(pFile, "%.4lf;%.4lf\n", freq, (sqrt(pow(fft[i].Re,2) + pow(fft[i].Im,2)))/length);
+				fprintf(pFile, "%lf;%.30lf\n", freq, (sqrt(pow(fft[i].Re,2) + pow(fft[i].Im,2))) / length);
 			}
 			fclose(pFile);
 			printf("\nDFT ZOSTA£O POPRAWNIE ZAPISANE DO PLIKU: ");
@@ -310,7 +314,7 @@ static void save_fft_to_file(void)
 	}
 	else
 	{
-		printf("\nDFT nie zosta³o obliczone!\n\n");
+		printf("\nDFT dla bie¿¹cego sygna³u nie zosta³o jeszcze obliczone!\n\n");
 	}
 }
 
@@ -325,7 +329,7 @@ static void get_main_frequency(void)
 	}
 	else
 	{
-		printf("\nDFT nie zosta³o obliczone!\n\n");
+		printf("\nDFT dla bie¿¹cego sygna³u nie zosta³o jeszcze obliczone!\n\n");
 	}
 }
 

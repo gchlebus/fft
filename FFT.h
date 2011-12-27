@@ -6,6 +6,17 @@ typedef struct _complex
 	double Re, Im;
 } complex;
 
+
+/**  	
+ *Calculates value A = 2^n (n = 0, 1, 2, 3, ...) which is equal or bigger than |num|.
+ *
+ *@param num - number for which value A will be calculated.
+ *
+ *@return value A.
+ *	  	
+**/
+unsigned int next_pow_2(unsigned int num);
+
 /**
  *Calculates number which has reversed binary representation of number |num| with length equal to |bits|.
  *
