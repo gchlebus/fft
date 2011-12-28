@@ -30,12 +30,11 @@ unsigned int next_pow_2(unsigned int num)
 
 int reverse(unsigned int num, unsigned int bits)
 {
-	int *stack;
-	unsigned int i, j, output;
+	unsigned int i, j, output, *stack;
 
 	assert(num >= 0 && bits >= 0);
 
-	stack = (int *)malloc(bits * sizeof(int));
+	stack = (unsigned int *)malloc(bits * sizeof(int));
 	if(stack == NULL)
 	{
 		return -1;
@@ -78,8 +77,8 @@ int fft_bit_reverse_copy(const double *input, complex *output, const unsigned in
 
 int fft_iterative(const double *input, complex *output, const unsigned int bits)
 {
-	unsigned int s, k, j, m;
 	double unity_root, w;
+	unsigned int s, k, j, m;
 	complex t, u, num;
 
 	assert(input != NULL && output != NULL && bits >= 0);
@@ -120,8 +119,8 @@ int fft_iterative(const double *input, complex *output, const unsigned int bits)
 
 int fft_to_frequency_domain(double **input, complex **fft, const unsigned int length)
 {
-	unsigned int bits, next_pow_2_num, i;
 	double *tmp;
+	unsigned int bits, next_pow_2_num, i;
 
 	assert(*input != NULL);
 
@@ -160,12 +159,12 @@ int fft_to_frequency_domain(double **input, complex **fft, const unsigned int le
 
 double fft_get_main_frequency(const complex *fft, const unsigned int length, const double f_sampling)
 {
+	double freq, main_freq, tmp_value, max_value;
 	unsigned int i;
-	double freq, main_freq = 0;
-	double tmp_value, max_value = 0;
 
 	assert(fft != NULL && f_sampling > 0);
 
+	max_value = main_freq = 0;
 	for(i = 0; i < length/2 + 1; ++i)
 	{
 		freq = i * ((double)f_sampling / length);

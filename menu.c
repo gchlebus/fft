@@ -22,8 +22,8 @@ static void print_string(const char *str)
 
 static long int uint_get_user_input(const char *msg,  const char *warn, const long int lbound, const long int rbound)
 {
-	char *c, str[20];
 	long int input;
+	char *c, str[20];
 	
 	while(1)
 	{
@@ -47,8 +47,8 @@ static long int uint_get_user_input(const char *msg,  const char *warn, const lo
 
 static double dbl_get_user_input(const char *msg, const char *warn, const double lbound, const double rbound)
 {
-	char *c, str[20];
 	double input;
+	char *c, str[20];
 
 	while(1)
 	{
@@ -138,8 +138,8 @@ static void generate_signal_menu(const unsigned int num)
 
 static void generate_signal(void)
 {
-	unsigned int n_funcs, suggested_value;
 	double max_freq;
+	unsigned int n_funcs, suggested_value;
 	char n_samples_str[100], f_sampling_str[100];
 	waveform_func *func;
 	generator *tmp, *generators = NULL;
@@ -168,7 +168,7 @@ static void generate_signal(void)
 				suggested_value = (int)ceil(2 * max_freq);
 				
 				sprintf(n_samples_str, "\nPodaj iloœæ próbek (sugerowana minimalna wartoœæ %d): ", suggested_value);
-				n_samples = (unsigned int)uint_get_user_input(n_samples_str, "B³êdna iloœæ próbek!\n", 1, UINT_MAX);
+				n_samples = (unsigned int)uint_get_user_input(n_samples_str, "B³êdna iloœæ próbek!\n", 1, LONG_MAX);
 				
 				sprintf(f_sampling_str, "Podaj czêstotliwoœæ próbkowania sygna³u[Hz] (sugerowana minimalna wartoœæ %d): ", suggested_value);
 				f_sampling = dbl_get_user_input(f_sampling_str, "B³êdna czêstotliwoœæ!\n", 1.0/INT_MAX, INT_MAX);
@@ -177,6 +177,7 @@ static void generate_signal(void)
 				{
 					free(signal);
 				}
+
 				if(signal_generator(&signal, n_samples, f_sampling, n_funcs, generators))
 				{
 					printf("B£¥D przy alokacji pamiêci na próbki sygna³u. Sygna³ nie zosta³ wygenerowany!\n\n");
@@ -416,12 +417,12 @@ static void load_signal_from_file(void)
 
 static void end(void)
 {
-	if(signal != NULL)
+	if(signal)
 	{
 		free(signal);
 	}
 
-	if(fft != NULL)
+	if(fft)
 	{
 		free(fft);
 	}

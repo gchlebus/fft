@@ -8,8 +8,8 @@
 
 void sine_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param)
 {
-	unsigned int i;
 	double t;
+	unsigned int i;
 
 	assert(input != NULL);
 
@@ -22,8 +22,8 @@ void sine_generator(double *input, const unsigned int length, const double f_sam
 
 void cosine_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param)
 {
-	unsigned int i;
 	double t;
+	unsigned int i;
 
 	assert(input != NULL);
 
@@ -36,13 +36,12 @@ void cosine_generator(double *input, const unsigned int length, const double f_s
 
 void rectangle_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param)
 {
-	unsigned int i, j;
 	double t;
+	unsigned int i, j;
 
 	assert(input != NULL);
 
-	t = 0;
-	j = 0;
+	t = j = 0;
 	for(i = 0; i < length; ++i)
 	{
 		if(t >= 1 / param.freq)
