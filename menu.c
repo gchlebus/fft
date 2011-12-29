@@ -28,6 +28,7 @@ static long int uint_get_user_input(const char *msg,  const char *warn, const lo
 	while(1)
 	{
 		print_string(msg);
+		fflush(stdin);
 		fgets(str, 20, stdin);
 		input = strtol(str, &c, 10);
 		if(*c == '\n' && input >= lbound && input <= rbound)
@@ -53,6 +54,7 @@ static double dbl_get_user_input(const char *msg, const char *warn, const double
 	while(1)
 	{
 		print_string(msg);
+		fflush(stdin);
 		fgets(str, 20, stdin);
 		input = strtod(str, &c);
 		if(*c == '\n' && input >= lbound && input <= rbound)
@@ -167,12 +169,12 @@ static void generate_signal(void)
 			{
 				suggested_value = (int)ceil(2 * max_freq);
 				
-				sprintf(n_samples_str, "\nPodaj iloœæ próbek (sugerowana minimalna wartoœæ %d): ", suggested_value);
-				n_samples = (unsigned int)uint_get_user_input(n_samples_str, "B³êdna iloœæ próbek!\n", 1, LONG_MAX);
-				
 				sprintf(f_sampling_str, "Podaj czêstotliwoœæ próbkowania sygna³u[Hz] (sugerowana minimalna wartoœæ %d): ", suggested_value);
 				f_sampling = dbl_get_user_input(f_sampling_str, "B³êdna czêstotliwoœæ!\n", 1.0/INT_MAX, INT_MAX);
 
+				sprintf(n_samples_str, "\nPodaj iloœæ próbek (sugerowana minimalna wartoœæ %d): ", next_pow_2((int)(f_sampling / max_freq)));
+				n_samples = (unsigned int)uint_get_user_input(n_samples_str, "B³êdna iloœæ próbek!\n", 1, LONG_MAX);
+				
 				if(signal)
 				{
 					free(signal);
@@ -308,11 +310,13 @@ static void save_fft_to_file(void)
 		if(pFile != NULL)
 		{
 			length = next_pow_2(n_samples);
-			fprintf(pFile, "Frequency[Hz];Re(DFT);Im(DFT)\n"); //header
+			//fprintf(pFile, "Frequency[Hz];Re(DFT);Im(DFT)\n"); //header
+			fprintf(pFile, "Frequency[Hz];|DFT|\n");
 			for(i = 0; i < length; ++i)
 			{
 				freq = i * ((double)f_sampling / length);
-				fprintf(pFile, "%lf;%.30lf;%.30lf\n", freq, fft[i].Re, fft[i].Im);
+				//fprintf(pFile, "%lf;%.30lf;%.30lf\n", freq, fft[i].Re, fft[i].Im);
+				fprintf(pFile, "%lf;%.30lf\n", freq, sqrt(pow(fft[i].Re, 2) + pow(fft[i].Im, 2)) / next_pow_2(n_samples));
 			}
 			fclose(pFile);
 			printf("\nDFT ZOSTA£O POPRAWNIE ZAPISANE DO PLIKU: ");

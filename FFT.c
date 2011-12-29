@@ -8,11 +8,12 @@
 
 complex complex_multiply(complex A, complex B)
 {
+	complex ret;
 
-	A.Re = A.Re * B.Re - A.Im * B.Im;
-	A.Im = A.Re * B.Im + A.Im * B.Re;
+	ret.Re = A.Re * B.Re - A.Im * B.Im;
+	ret.Im = A.Re * B.Im + A.Im * B.Re;
 
-	return A;
+	return ret;
 }
 
 unsigned int next_pow_2(unsigned int num)
@@ -102,11 +103,19 @@ int fft_iterative(const double *input, complex *output, const unsigned int bits)
 				t = complex_multiply(num, output[k + j + m/2]);
 				u = output[k+j];
 				
-				output[k+j].Re = u.Re + t.Re;
-				output[k+j].Im = u.Im + t.Im;
+				output[k + j].Re = u.Re + t.Re;
+				output[k + j].Im = u.Im + t.Im;
 				output[k + j + m/2].Re = u.Re - t.Re;
 				output[k + j + m/2].Im = u.Im - t.Im;
 				
+				/*if(s == bits)
+				{
+					output[k + j].Re /= (double) m;
+					output[k + j].Im /= (double) m;
+					output[k + j + m/2].Re /= (double) m;
+					output[k + j + m/2].Im /= (double) m;
+				}*/
+
 				w = unity_root * (++j); 
 				num.Re = cos(w);
 				num.Im = sin(w);
