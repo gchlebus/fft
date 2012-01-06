@@ -7,7 +7,7 @@
 #include "generators.h"
 #include "FFT.h"
 
-double *signal;
+double *signal=NULL;
 complex *fft;
 unsigned int n_samples;
 double f_sampling;
@@ -178,6 +178,7 @@ static void generate_signal(void)
 				if(signal)
 				{
 					free(signal);
+					//signal = NULL;
 				}
 
 				if(signal_generator(&signal, n_samples, f_sampling, n_funcs, generators))
@@ -275,7 +276,7 @@ static void calculate_fft(void)
 	{
 		if(signal)
 		{
-			if(fft_to_frequency_domain(&signal, &fft, n_samples, f_sampling))
+			if(fft_to_frequency_domain(&signal, &fft, n_samples))
 			{
 				printf("\nB£¥D podczas obliczania DFT!\n\n");
 			}
@@ -310,12 +311,10 @@ static void save_fft_to_file(void)
 		if(pFile != NULL)
 		{
 			length = next_pow_2(n_samples);
-			//fprintf(pFile, "Frequency[Hz];Re(DFT);Im(DFT)\n"); //header
 			fprintf(pFile, "Frequency[Hz];|DFT|\n");
 			for(i = 0; i < length; ++i)
 			{
 				freq = i * ((double)f_sampling / length);
-				//fprintf(pFile, "%lf;%.30lf;%.30lf\n", freq, fft[i].Re, fft[i].Im);
 				fprintf(pFile, "%lf;%.30lf\n", freq, sqrt(pow(fft[i].Re, 2) + pow(fft[i].Im, 2)) / next_pow_2(n_samples));
 			}
 			fclose(pFile);

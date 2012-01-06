@@ -108,14 +108,6 @@ int fft_iterative(const double *input, complex *output, const unsigned int bits)
 				output[k + j + m/2].Re = u.Re - t.Re;
 				output[k + j + m/2].Im = u.Im - t.Im;
 				
-				/*if(s == bits)
-				{
-					output[k + j].Re /= (double) m;
-					output[k + j].Im /= (double) m;
-					output[k + j + m/2].Re /= (double) m;
-					output[k + j + m/2].Im /= (double) m;
-				}*/
-
 				w = unity_root * (++j); 
 				num.Re = cos(w);
 				num.Im = sin(w);
@@ -156,8 +148,10 @@ int fft_to_frequency_domain(double **input, complex **fft, const unsigned int le
 	{
 		return -1; //memory allocation failed
 	}
+	
+	for(bits = 0; (next_pow_2_num - 1)>>bits; ++bits);
+	//bits = (int) (log10((float)next_pow_2_num) / log10((float)2)); //log2(length)
 
-	bits = (int) (log10((float)next_pow_2_num) / log10((float)2)); //log2(length)
 	if(fft_iterative(*input, *fft, bits))
 	{
 		return -1; //fft_iterative failed
@@ -174,7 +168,7 @@ double fft_get_main_frequency(const complex *fft, const unsigned int length, con
 	assert(fft != NULL && f_sampling > 0);
 
 	max_value = main_freq = 0;
-	for(i = 0; i < length/2 + 1; ++i)
+	for(i = 0; i < length / 2; ++i)
 	{
 		freq = i * ((double)f_sampling / length);
 		tmp_value = sqrt(pow(fft[i].Re,2) + pow(fft[i].Im,2));
