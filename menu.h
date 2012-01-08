@@ -25,6 +25,8 @@ static void save_fft_to_file(void);
 
 static void get_main_frequency(void);
 
+static void filter(void);
+
 static void end(void);
 
 #endif

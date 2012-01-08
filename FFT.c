@@ -58,7 +58,7 @@ int reverse(unsigned int num, unsigned int bits)
 	return output;
 }
 
-int fft_bit_reverse_copy(const double *input, complex *output, const unsigned int bits)
+int fft_bit_reverse_copy(const complex *input, complex *output, const unsigned int bits)
 {
 	unsigned int i, rev;
 
@@ -71,12 +71,13 @@ int fft_bit_reverse_copy(const double *input, complex *output, const unsigned in
 		{
 			return -1; //reverse function failed
 		}
-		output[rev].Re = input[i];
+		output[rev].Re = input[i].Re;
+		output[rev].Im = input[i].Im;
 	}
 	return 0;
 }
 
-int fft_iterative(const double *input, complex *output, const unsigned int bits)
+int fft_iterative(const complex *input, complex *output, const unsigned int bits, const char dir)
 {
 	double unity_root, w;
 	unsigned int s, k, j, m;
@@ -92,7 +93,14 @@ int fft_iterative(const double *input, complex *output, const unsigned int bits)
 	for(s = 1; s <= bits; s++)
 	{
 		m = 1<<s; //number of elements for which DFT is computed
-		unity_root = -(2 * M_PI) / m; //exponent of e - expotential form of complex number
+		if(dir == 0)
+		{
+			unity_root = -(2 * M_PI) / m; //exponent of e - expotential form of complex number
+		}
+		else
+		{
+			unity_root = (2 * M_PI) / m; //exponent of e - expotential form of complex number
+		}
 
 		for(k = 0; k < 1<<bits; k += m)
 		{
@@ -118,9 +126,39 @@ int fft_iterative(const double *input, complex *output, const unsigned int bits)
 	return 0;
 }
 
-int fft_to_frequency_domain(double **input, complex **fft, const unsigned int length)
+int fft_to_time_domain(complex *dft_input, complex **output, const unsigned int length)
 {
-	double *tmp;
+	unsigned int bits, i;
+
+	assert(dft_input != NULL && length == next_pow_2(length));
+
+	*output = (complex *)calloc(length, sizeof(complex));
+	if(!(*output))
+	{
+		return 1; //calloc failed
+	}
+
+	for(bits = 0; (length - 1)>>bits; ++bits);
+
+	if(fft_iterative(dft_input, *output, bits, 1)) //to time domain
+	{
+		free(*output);
+		*output = NULL;
+		return 1;
+	}
+
+	for(i = 0; i < length; ++i)
+	{
+		(*output)[i].Re /= 0.5 * length;
+		(*output)[i].Im /= 0.5 * length;
+	}
+	
+	return 0;
+}
+
+int fft_to_frequency_domain(complex **input, complex **fft, const unsigned int length)
+{
+	complex *tmp;
 	unsigned int bits, next_pow_2_num, i;
 
 	assert(*input != NULL);
@@ -128,7 +166,7 @@ int fft_to_frequency_domain(double **input, complex **fft, const unsigned int le
 	next_pow_2_num = next_pow_2(length);
 	if(next_pow_2_num != length)
 	{
-		tmp = (double *)realloc(*input, next_pow_2_num * sizeof(double));
+		tmp = (complex *)realloc(*input, next_pow_2_num * sizeof(complex));
 		if(tmp == NULL)
 		{
 			return -1; //memory reallocation failed
@@ -138,7 +176,8 @@ int fft_to_frequency_domain(double **input, complex **fft, const unsigned int le
 			*input = tmp;
 			for(i = length; i < next_pow_2_num; ++i)
 			{
-				(*input)[i] = 0;
+				(*input)[i].Re = 0;
+				(*input)[i].Im = 0;
 			}
 		}
 	}
@@ -150,10 +189,11 @@ int fft_to_frequency_domain(double **input, complex **fft, const unsigned int le
 	}
 	
 	for(bits = 0; (next_pow_2_num - 1)>>bits; ++bits);
-	//bits = (int) (log10((float)next_pow_2_num) / log10((float)2)); //log2(length)
 
-	if(fft_iterative(*input, *fft, bits))
+	if(fft_iterative(*input, *fft, bits, 0)) //to freq domain
 	{
+		free(*fft);
+		*fft = NULL;
 		return -1; //fft_iterative failed
 	}
 
@@ -168,7 +208,7 @@ double fft_get_main_frequency(const complex *fft, const unsigned int length, con
 	assert(fft != NULL && f_sampling > 0);
 
 	max_value = main_freq = 0;
-	for(i = 0; i < length / 2; ++i)
+	for(i = 0; i <= length / 2; ++i)
 	{
 		freq = i * ((double)f_sampling / length);
 		tmp_value = sqrt(pow(fft[i].Re,2) + pow(fft[i].Im,2));

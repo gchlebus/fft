@@ -3,11 +3,12 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <math.h>
+#include <time.h>
 #include "menu.h"
 #include "generators.h"
 #include "FFT.h"
 
-double *signal=NULL;
+complex *signal;
 complex *fft;
 unsigned int n_samples;
 double f_sampling;
@@ -77,7 +78,7 @@ void menu(void)
 	while(1)
 	{
 		main_menu();
-		switch(uint_get_user_input("Wybierz opcjê: ", "Nie ma takiej opcji!\n", 1, 7))
+		switch(uint_get_user_input("Wybierz opcjê: ", "Nie ma takiej opcji!\n", 1, 8))
 		{
 		case 1:
 			generate_signal();
@@ -92,12 +93,15 @@ void menu(void)
 			calculate_fft();
 			break;
 		case 5:
-			save_fft_to_file();
+			filter();
 			break;
 		case 6:
-			get_main_frequency();
+			save_fft_to_file();
 			break;
 		case 7:
+			get_main_frequency();
+			break;
+		case 8:
 			end();
 			return;
 		}
@@ -111,9 +115,10 @@ static void main_menu(void)
 	printf("2. Wczytaj sygna³ z pliku\n");
 	printf("3. Zapisz sygna³ do pliku\n");
 	printf("4. Oblicz DFT\n");
-	printf("5. Zapisz DFT sygna³u do pliku\n");
-	printf("6. Oblicz g³ówn¹ sk³adow¹ czêstotliwoœciow¹\n");
-	printf("7. Zakoñcz\n");
+	printf("5. Filtruj sygna³\n");
+	printf("6. Zapisz DFT sygna³u do pliku\n");
+	printf("7. Oblicz g³ówn¹ sk³adow¹ czêstotliwoœciow¹\n");
+	printf("8. Zakoñcz\n");
 }
 
 static void generate_signal_menu(const unsigned int num)
@@ -163,6 +168,7 @@ static void generate_signal(void)
 			break;
 		case 4:
 			func = white_noise_generator;
+			srand(time(NULL));
 			break;
 		case 5:
 			if(generators != NULL)
@@ -251,7 +257,7 @@ static void save_signal_to_file(void)
 			fprintf(pFile, "%d;%lf\n", n_samples, f_sampling);
 			for(i = 0; i < n_samples; ++i)
 			{
-				fprintf(pFile, "%lf\n", signal[i]);
+				fprintf(pFile, "%lf;%lf\n", signal[i].Re, signal[i].Im);
 			}
 			fclose(pFile);
 
@@ -350,9 +356,11 @@ static void get_main_frequency(void)
 
 static void load_signal_from_file(void)
 {
-	double tmp_value, tmp_f_sampling, *tmp_signal = NULL;
+	double tmp_value_Re, tmp_value_Im, tmp_f_sampling;
 	unsigned int tmp_n_samples, i;
+	unsigned char count;
 	char filename[100];
+	complex *tmp_signal = NULL;
 	FILE *pFile;
 
 	printf("Podaj nazwê pliku do wczytania: ");
@@ -371,7 +379,7 @@ static void load_signal_from_file(void)
 			return;
 		}
 
-		tmp_signal = (double *)malloc(tmp_n_samples * sizeof(double));
+		tmp_signal = (complex *)calloc(tmp_n_samples, sizeof(complex));
 		if(tmp_signal == NULL)
 		{
 			printf("\nB£¥D podczas alokacji pamiêci na sygna³!\n\n");
@@ -379,9 +387,14 @@ static void load_signal_from_file(void)
 		}
 
 		i = 0;
-		while(fscanf(pFile, "%lf\n", &tmp_value) != EOF)
+		while((count = fscanf(pFile, "%lf;%lf\n", &tmp_value_Re, &tmp_value_Im)) != EOF)
 		{
-			tmp_signal[i++] = tmp_value;
+			tmp_signal[i].Re = tmp_value_Re;
+			if(count == 2)
+			{
+				tmp_signal[i].Im = tmp_value_Im;
+			}
+			i++;
 		}
 		fclose(pFile);
 	}
@@ -416,6 +429,81 @@ static void load_signal_from_file(void)
 		free(signal);
 	}
 	signal = tmp_signal;
+}
+
+void filter(void)
+{
+	double cutoff_freq_l, cutoff_freq_u, freq;
+	unsigned int next_pow_2_num, i;
+	
+	if(!fft)
+	{
+		printf("\nDFT dla bie¿¹cego sygna³u nie zosta³o jeszcze obliczone!\n\n");
+		return;
+	}
+
+	next_pow_2_num = next_pow_2(n_samples); //number of elements in dft array
+
+	printf("1. Dolnoprzepustowy\n");
+	printf("2. Górnoprzepustowy\n");
+	printf("3. Pasmowoprzepustowy\n");
+	
+	switch(uint_get_user_input("Wybierz rodzaj filtra: ", "Z³y format danych!", 1, 3))
+	{
+	case 1:
+		cutoff_freq_l = dbl_get_user_input("FILTR DOLNOPRZEPUSTOWY\nPodaj czêstotliwoœæ graniczn¹: ", "Z³y format danych!", 0, INT_MAX);
+
+		for(i = 0; i < next_pow_2_num / 2; ++i)
+		{
+			freq = i * ((double)f_sampling / next_pow_2_num);
+
+			if( !(freq < cutoff_freq_l) )
+			{
+				fft[i].Re = fft[i].Im = 0;
+				fft[next_pow_2_num - (i + 1)].Re = fft[next_pow_2_num - (i + 1)].Im = 0;
+			}
+		}
+		break;
+
+	case 2:
+		cutoff_freq_u = dbl_get_user_input("FILTR GÓRNOPRZEPUSTOWY\nPodaj czêstotliwoœæ graniczn¹: ", "Z³y format danych!", 0, INT_MAX);
+
+		for(i = 0; i < next_pow_2_num / 2; ++i)
+		{
+			freq = i * ((double)f_sampling / next_pow_2_num);
+
+			if( !(freq > cutoff_freq_u) )
+			{
+				fft[i].Re = fft[i].Im = 0;
+				fft[next_pow_2_num - (i + 1)].Re = fft[next_pow_2_num - (i + 1)].Im = 0;
+			}
+		}
+		break;
+
+	case 3:
+		cutoff_freq_l = dbl_get_user_input("FILTR PASMOWOPRZEPUSTOWY\nPodaj doln¹ czêstotliwoœæ graniczn¹: ", "Z³y format danych!", 0, INT_MAX);
+		cutoff_freq_u = dbl_get_user_input("FILTR PASMOWOPRZEPUSTOWY\nPodaj górn¹ czêstotliwoœæ graniczn¹: ", "Z³y format danych!", 0, INT_MAX);
+
+		for(i = 0; i < next_pow_2_num / 2; ++i)
+		{
+			freq = i * ((double)f_sampling / next_pow_2_num);
+
+			if( !(freq < cutoff_freq_u) || !(freq > cutoff_freq_l) )
+			{
+				fft[i].Re = fft[i].Im = 0;
+				fft[next_pow_2_num - (i + 1)].Re = fft[next_pow_2_num - (i + 1)].Im = 0;
+			}
+		}
+		break;
+	}
+	
+	if(fft_to_time_domain(fft, &signal, next_pow_2_num))
+	{
+		printf("\nOperacja filtracji nie powiod³a siê!\n\n");
+		return;
+	}
+
+	printf("\nOperacja filtracji siê powiod³a!\nDFT zosta³o zmodyfikowane!\nSygna³ zosta³ nadpisany!\n\n");
 }
 
 static void end(void)

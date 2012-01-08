@@ -1,12 +1,13 @@
 #define _USE_MATH_DEFINES
+#define _COMPLEX_DEFINED
 #include "generators.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <time.h>
+#include "FFT.h"
 
-void sine_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param)
+void sine_generator(complex *input, const unsigned int length, const double f_sampling, const sig_param param)
 {
 	double t;
 	unsigned int i;
@@ -16,11 +17,11 @@ void sine_generator(double *input, const unsigned int length, const double f_sam
 	for(i = 0; i < length; ++i)
 	{
 		t = i * ((double)1 / f_sampling);
-		input[i] += param.amp * sin(2 * M_PI * param.freq * t);
+		input[i].Re += param.amp * sin(2 * M_PI * param.freq * t);
 	}
 }
 
-void cosine_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param)
+void cosine_generator(complex *input, const unsigned int length, const double f_sampling, const sig_param param)
 {
 	double t;
 	unsigned int i;
@@ -30,11 +31,11 @@ void cosine_generator(double *input, const unsigned int length, const double f_s
 	for(i = 0; i < length; ++i)
 	{
 		t = i * ((double)1 / f_sampling);
-		input[i] += param.amp * cos(2 * M_PI * param.freq * t);
+		input[i].Re += param.amp * cos(2 * M_PI * param.freq * t);
 	}
 }
 
-void rectangle_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param)
+void rectangle_generator(complex *input, const unsigned int length, const double f_sampling, const sig_param param)
 {
 	double t;
 	unsigned int i, j;
@@ -50,31 +51,29 @@ void rectangle_generator(double *input, const unsigned int length, const double 
 		}
 		
 		t = j++ * ((double)1 / f_sampling);	
-		input[i] += t >= 0.5 * (1 / param.freq) ? -param.amp : param.amp;
+		input[i].Re += t >= 0.5 * (1 / param.freq) ? -param.amp : param.amp;
 	}
 }
 
-void white_noise_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param)
+void white_noise_generator(complex *input, const unsigned int length, const double f_sampling, const sig_param param)
 {
 	unsigned int i;
 
 	assert(input != NULL);
 
-	srand(time(NULL));
-
 	for(i = 0; i < length; ++i)
 	{
-		input[i] += 2 * param.amp *  ((double)rand()/RAND_MAX - 0.5);
+		input[i].Re += 2 * param.amp *  ((double)rand()/RAND_MAX - 0.5);
 	}
 }
 
-int signal_generator(double **signal, const unsigned int length, const double f_sampling, const unsigned int n, const generator *generators)
+int signal_generator(complex **signal, const unsigned int length, const double f_sampling, const unsigned int n, const generator *generators)
 {
 	unsigned int i;
 
 	assert(generators != NULL);
 
-	*signal = (double *)calloc(length, sizeof(double));
+	*signal = (complex *)calloc(length, sizeof(complex));
 	if(*signal == NULL)
 	{
 		return 1; //allocation failed

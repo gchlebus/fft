@@ -7,7 +7,10 @@ typedef struct sig_param_
 	double freq;
 } sig_param;
 
-typedef void waveform_func(double *input, const unsigned int length, const double f_sampling, const sig_param param);
+extern struct _complex;
+typedef struct _complex complex;
+
+typedef void waveform_func(complex *input, const unsigned int length, const double f_sampling, const sig_param param);
 
 typedef struct generator_
 {
@@ -24,7 +27,7 @@ typedef struct generator_
  *@param param - signal parameters i.e. amplitude and frequency.
  *
 **/
-void sine_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param);
+void sine_generator(complex *input, const unsigned int length, const double f_sampling, const sig_param param);
 
 /**
  *Generates cosine waveform. Generated samples are added to values in |input|.
@@ -35,7 +38,7 @@ void sine_generator(double *input, const unsigned int length, const double f_sam
  *@param param - signal parameters i.e. amplitude and frequency.
  *
 **/
-void cosine_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param);
+void cosine_generator(complex *input, const unsigned int length, const double f_sampling, const sig_param param);
 
 /**
  *Generates rectangle waveform. Generated samples are added to values in |input|.
@@ -46,7 +49,7 @@ void cosine_generator(double *input, const unsigned int length, const double f_s
  *@param param - signal parameters i.e. amplitude and frequency.
  *
 **/
-void rectangle_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param);
+void rectangle_generator(complex *input, const unsigned int length, const double f_sampling, const sig_param param);
 
 /**
  *Generates white noise. Generated samples are added to values in |input|.
@@ -57,7 +60,7 @@ void rectangle_generator(double *input, const unsigned int length, const double 
  *@param param - signal parameters i.e. amplitude and frequency (not used in this case).
  *
 **/
-void white_noise_generator(double *input, const unsigned int length, const double f_sampling, const sig_param param);
+void white_noise_generator(complex *input, const unsigned int length, const double f_sampling, const sig_param param);
 
 /**
  *Generates signal compunding of waveform functions stored in |generators|.
@@ -71,6 +74,6 @@ void white_noise_generator(double *input, const unsigned int length, const doubl
  *@return 0 if successful, otherwise -1.
  *
 **/
-int signal_generator (double **signal, const unsigned int length, const double f_sampling, const unsigned int n, const generator *generators);
+int signal_generator (complex **signal, const unsigned int length, const double f_sampling, const unsigned int n, const generator *generators);
 
 #endif

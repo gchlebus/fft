@@ -6,7 +6,6 @@ typedef struct _complex
 	double Re, Im;
 } complex;
 
-
 /**  	
  *Calculates value A = 2^n (n = 0, 1, 2, 3, ...) which is equal or bigger than |num|.
  *
@@ -38,7 +37,7 @@ int reverse(unsigned int num, unsigned int bits);
  *@return 0 on success, otherwise -1
  *
 **/
-int fft_bit_reverse_copy(const double *input, complex *output, const unsigned int bits);
+int fft_bit_reverse_copy(const complex *input, complex *output, const unsigned int bits);
 
 /**
  *Calculates DFT of values in array stored in |input| and stores the output in array pointed by |output|.
@@ -50,7 +49,7 @@ int fft_bit_reverse_copy(const double *input, complex *output, const unsigned in
  *@return 0 on success, otherwise -1
  *
 **/
-int fft_iterative(const double *input, complex *output, const unsigned int bits);
+int fft_iterative(const complex *input, complex *output, const unsigned int bits, const char dir);
 
 /**
  *Calculates DFT on values stored in |input| and stores output in |output|.
@@ -63,7 +62,9 @@ int fft_iterative(const double *input, complex *output, const unsigned int bits)
  *@return 0 on success, otherwise -1
  *
 **/
-int fft_to_frequency_domain(double **input, complex **fft, const unsigned int length);
+int fft_to_frequency_domain(complex **input, complex **fft, const unsigned int length);
+
+int fft_to_time_domain(complex *dft_input, complex **output, const unsigned int length);
 
 /**
  *Gets main frequency of signal (i.e. frequency component with highest amplitude).
