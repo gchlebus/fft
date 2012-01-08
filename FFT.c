@@ -149,8 +149,8 @@ int fft_to_time_domain(complex *dft_input, complex **output, const unsigned int 
 
 	for(i = 0; i < length; ++i)
 	{
-		(*output)[i].Re /= 0.5 * length;
-		(*output)[i].Im /= 0.5 * length;
+		(*output)[i].Re /= length;
+		(*output)[i].Im /= length;
 	}
 	
 	return 0;
